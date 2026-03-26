@@ -200,15 +200,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Welcome Screen Logic
 listen('btn-pray', () => {
-    // 1. Record the interaction to the Stats sheet
     recordSoulReached();
 
-    backgroundMusic.volume = 0.4; 
+    // Start background music at a low level
+    backgroundMusic.volume = 0.2; 
     backgroundMusic.play().catch(e => console.log("Audio Blocked"));
     
     setTimeout(() => {
+        // Lower music further while the prayer plays
+        backgroundMusic.volume = 0.1; 
         introPrayer.play().catch(e => console.log("Prayer Audio Blocked"));
-        introPrayer.onended = () => enterApp();
+        
+        introPrayer.onended = () => {
+            backgroundMusic.volume = 0.4; // Bring music back up after prayer
+            enterApp();
+        };
     }, 1000); 
 });
 
