@@ -3,6 +3,8 @@
    ========================================= */
 let bibleData = [];
 let quotesData = []; 
+let baseSoulCount = 0; 
+
 const introPrayer = new Audio('intro-prayer.mp3'); 
 const backgroundMusic = new Audio('bg-music.mp3');
 backgroundMusic.loop = true;
@@ -25,11 +27,10 @@ async function loadExcel() {
             bibleData = XLSX.utils.sheet_to_json(qSheet);
         }
 
-        // 2. Load Stats from "Stats" (Keep this separate from Questions!)
+        // 2. Load Stats from "Stats"
         const statsSheet = workbook.Sheets["Stats"];
         if (statsSheet) {
             const statsData = XLSX.utils.sheet_to_json(statsSheet);
-            // Safety check: Ensure the array isn't empty before accessing [0]
             if (statsData && statsData.length > 0) {
                 baseSoulCount = parseInt(statsData[0].Total) || 0;
             } else {
@@ -60,9 +61,8 @@ function createCategoryButtons() {
     const container = document.getElementById('category-container');
     if (!container || bibleData.length === 0) return;
 
-    // Get unique categories (e.g., Sad, Happy, Anxious)
     const categories = [...new Set(bibleData.map(item => item.Category))];
-    container.innerHTML = ""; // Clear loader text
+    container.innerHTML = ""; 
 
     categories.forEach(cat => {
         const btn = document.createElement('button');
@@ -82,15 +82,12 @@ function setupDoveInteraction() {
     dove.onclick = () => {
         if (quotesData.length === 0) return;
 
-        // Select random quote from the second sheet
         const randomQuote = quotesData[Math.floor(Math.random() * quotesData.length)];
         
-        // Update Quote Modal
         document.getElementById('quote-text').innerText = randomQuote.Verse;
         document.getElementById('quote-source').innerText = `— ${randomQuote.Source}`;
         document.getElementById('quoteModal').style.display = 'block';
         
-        // Speak the quote with a slightly higher pitch for the "Whispered" feel
         speakQuote(randomQuote.Verse);
     };
 }
@@ -99,7 +96,7 @@ function speakQuote(text) {
     window.speechSynthesis.cancel();
     const msg = new SpeechSynthesisUtterance(text);
     msg.rate = 0.85;
-    msg.pitch = 1.1; // Slightly higher for a friendly whisper
+    msg.pitch = 1.1; 
     msg.voice = getDevotionalVoice();
     window.speechSynthesis.speak(msg);
 }
@@ -108,7 +105,6 @@ function speakQuote(text) {
    4. MAIN VERSE DISPLAY LOGIC
    ========================================= */
 function showVerse(category) {
-    // Stop the intro prayer if it's still playing
     introPrayer.pause();
     introPrayer.currentTime = 0; 
     
@@ -117,23 +113,20 @@ function showVerse(category) {
 
     const randomEntry = filtered[Math.floor(Math.random() * filtered.length)];
 
-    // Reset Sections (Hide reflection/prayer from previous click)
     document.getElementById('reflection-section').classList.add('hidden');
     document.getElementById('prayer-section').classList.add('hidden');
     document.getElementById('btn-show-reflection').classList.remove('hidden');
     document.getElementById('btn-show-prayer').classList.remove('hidden');
 
-    // Populate Data
     document.getElementById('feeling-text').innerText = `Are you feeling... ${randomEntry.Feeling}?`;
     document.getElementById('bible-verse').innerText = randomEntry['Bible Verse'];
     document.getElementById('reflection-text').innerText = randomEntry.Reflection;
     document.getElementById('prayer-text').innerText = randomEntry['Personal Prayer'];
 
-    // Clean text for speech
     let verseText = randomEntry['Bible Verse'];
     verseText = verseText.replace(/(\d+):(\d+)/g, " Chapter $1, Verse $2. ");
     verseText = verseText.replace(/(\d+)-(\d+)/g, " $1 to $2. ");
-    verseText = verseText.replace(/;/g, ". ... "); // Semicolon pause fix
+    verseText = verseText.replace(/;/g, ". ... "); 
     verseText = verseText.replace(/[:—]/g, "");
 
     const finalSpeech = `Are you feeling... ${randomEntry.Feeling}? ... ... Here is a message for you... ${verseText}`;
@@ -142,7 +135,6 @@ function showVerse(category) {
     msg.pitch = 0.88; 
     msg.voice = getDevotionalVoice();
 
-    // Duck music volume while speaking
     msg.onstart = () => { backgroundMusic.volume = 0.1; };
     msg.onend = () => { backgroundMusic.volume = 0.4; };
 
@@ -157,7 +149,6 @@ function showVerse(category) {
    ========================================= */
 function getDevotionalVoice() {
     const voices = window.speechSynthesis.getVoices();
-    // Prioritize natural male voices (Neural/Guy/David)
     return voices.find(v => v.name.includes('Christopher') && v.name.includes('Neural')) || 
            voices.find(v => v.name.includes('Guy') && v.name.includes('Neural')) ||
            voices.find(v => v.name.includes('Google US English')) || 
@@ -169,7 +160,6 @@ function getDevotionalVoice() {
    6. GLOBAL EVENT LISTENERS
    ========================================= */
 document.addEventListener('DOMContentLoaded', () => {
-    // Prime the voices for Chrome
     window.speechSynthesis.onvoiceschanged = () => getDevotionalVoice();
 
     const listen = (id, func) => {
@@ -177,7 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el) el.addEventListener('click', func);
     };
 
-    // Close Modals logic
     listen('btn-close-quote', () => {
         document.getElementById('quoteModal').style.display = 'none';
         window.speechSynthesis.cancel();
@@ -199,37 +188,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Welcome Screen Logic
-listen('btn-pray', () => {
-    recordSoulReached();
-
-    // Start background music at a low level
-    backgroundMusic.volume = 0.2; 
-    backgroundMusic.play().catch(e => console.log("Audio Blocked"));
-    
-    setTimeout(() => {
-        // Lower music further while the prayer plays
-        backgroundMusic.volume = 0.1; 
-        introPrayer.play().catch(e => console.log("Prayer Audio Blocked"));
+    listen('btn-pray', () => {
+        recordSoulReached();
         
-        introPrayer.onended = () => {
-            backgroundMusic.volume = 0.4; // Bring music back up after prayer
-            enterApp();
-        };
-    }, 1000); 
-});
+        // Safety: Enter app immediately in case audio fails to trigger 'onended'
+        enterApp(); 
 
-listen('btn-skip', (e) => {
-    e.preventDefault();
-    
-    // 1. Record the interaction even if they skip the prayer
-    recordSoulReached();
+        backgroundMusic.volume = 0.2; 
+        backgroundMusic.play().catch(e => console.log("Audio Blocked"));
+        
+        setTimeout(() => {
+            backgroundMusic.volume = 0.1; 
+            introPrayer.play().catch(e => {
+                console.log("Prayer Audio Blocked");
+                backgroundMusic.volume = 0.4;
+            });
+            
+            introPrayer.onended = () => {
+                backgroundMusic.volume = 0.4;
+            };
+        }, 1000); 
+    });
 
-    introPrayer.pause(); 
-    backgroundMusic.play().catch(e => console.log("Audio Blocked"));
-    enterApp();
-});
+    listen('btn-skip', (e) => {
+        e.preventDefault();
+        recordSoulReached();
+        introPrayer.pause(); 
+        backgroundMusic.play().catch(e => console.log("Audio Blocked"));
+        enterApp();
+    });
 
-    // Dark Mode Toggle
     listen('mode-toggle', () => {
         const isDark = document.body.getAttribute('data-theme') === 'dark';
         document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
@@ -237,11 +225,9 @@ listen('btn-skip', (e) => {
         if(icon) icon.innerText = isDark ? '☀️' : '🌙';
     });
 
-    // --- Sound/Mute Toggle Logic (Fixed ID to music-toggle) ---
     let isMuted = false;
     listen('music-toggle', () => {
         isMuted = !isMuted;
-        
         backgroundMusic.muted = isMuted;
         introPrayer.muted = isMuted;
 
@@ -262,7 +248,6 @@ listen('btn-skip', (e) => {
     });
 });
 
-
 function enterApp() {
     const welcome = document.getElementById('welcome-screen');
     if(welcome) {
@@ -271,39 +256,22 @@ function enterApp() {
     }
 }
 
-// Initialize!
 loadExcel();
-// Function to handle Tab Switching visually
+
 function handleTab(element, tabName) {
-    // 1. Remove 'active' class from all nav items
     document.querySelectorAll('.nav-item').forEach(nav => {
         nav.classList.remove('active');
     });
-
-    // 2. Add 'active' class to the clicked tab
     element.classList.add('active');
-
-    // 3. Log or Placeholder for your future functions
-    console.log(`Switched to: ${tabName}`);
-    
-    // If you click "Daily Word", you might want to refresh the category view
-    if (tabName === 'Daily Word') {
-        // refreshView(); // Future logic
-    }
 }
-/* =========================================
-   7. STATS & SOUL COUNTER LOGIC (Local Only)
-   ========================================= */
-let baseSoulCount = 0; // This comes from your Excel sheet
 
+/* =========================================
+   7. STATS & SOUL COUNTER LOGIC
+   ========================================= */
 function recordSoulReached() {
-    // 1. Get the local visit count from browser memory
     let sessionCount = parseInt(localStorage.getItem('souls_reached') || "0");
-    
-    // 2. Increment it (only if they haven't been counted this session, or every click)
     sessionCount++;
     localStorage.setItem('souls_reached', sessionCount);
-    
     updateCounterUI();
 }
 
@@ -311,7 +279,6 @@ function updateCounterUI() {
     const pillCount = document.querySelector('.pill-count');
     if (pillCount) {
         let sessionCount = parseInt(localStorage.getItem('souls_reached') || "0");
-        // Display Excel Total + Local sessions
         pillCount.innerText = (baseSoulCount + sessionCount).toLocaleString();
     }
 }
