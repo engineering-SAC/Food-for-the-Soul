@@ -187,28 +187,45 @@ document.addEventListener('DOMContentLoaded', () => {
         window.speechSynthesis.cancel(); 
     });
 
-    // Welcome Screen Logic
-    listen('btn-pray', () => {
-        recordSoulReached();
-        
-        // Safety: Enter app immediately in case audio fails to trigger 'onended'
-        enterApp(); 
+    listen('btn-pray', async () => {
+    recordSoulReached();
+    
+    // 1. Immediately enter the app so the user isn't stuck
+    enterApp(); 
 
-        backgroundMusic.volume = 0.2; 
-        backgroundMusic.play().catch(e => console.log("Audio Blocked"));
-        
-        setTimeout(() => {
-            backgroundMusic.volume = 0.1; 
-            introPrayer.play().catch(e => {
-                console.log("Prayer Audio Blocked");
-                backgroundMusic.volume = 0.4;
-            });
+    // 2. Start Background Music first
+    backgroundMusic.volume = 0; // Start at 0 to "warm up"
+    try {
+        await backgroundMusic.play();
+        // Fade in background music to 0.2
+        let fadeIn = setInterval(() => {
+            if (backgroundMusic.volume < 0.2) {
+                backgroundMusic.volume += 0.05;
+            } else {
+                clearInterval(fadeIn);
+            }
+        }, 100);
+    } catch (e) {
+        console.log("BG Music blocked:", e);
+    }
+
+    // 3. Play the Intro Prayer after a short delay
+    setTimeout(async () => {
+        try {
+            // "Duck" the music for the prayer
+            backgroundMusic.volume = 0.05; 
+            await introPrayer.play();
             
+            // Bring music back up when prayer ends
             introPrayer.onended = () => {
                 backgroundMusic.volume = 0.4;
             };
-        }, 1000); 
-    });
+        } catch (e) {
+            console.log("Prayer blocked:", e);
+            backgroundMusic.volume = 0.4; // Reset music if prayer fails
+        }
+    }, 800); 
+});
 
     listen('btn-skip', (e) => {
         e.preventDefault();
