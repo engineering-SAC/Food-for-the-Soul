@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Food for the Soul | SAC Engineering</title>
+
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Food for the Soul","short_name":"SoulFood","start_url":".","display":"standalone","background_color":"#fdf2f5","theme_color":"#ad1457","icons":[{"src":"favicon.png","sizes":"192x192","type":"image/png"},{"src":"favicon.png","sizes":"512x512","type":"image/png"}]}'>
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Soul Food">
+    
+    <link rel="apple-touch-icon" href="favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png"> 
+</head>
+<body data-theme="light">
+
+    <div id="welcome-screen" class="welcome-overlay">
+        <div class="welcome-card">
+            <img src="favicon.png" alt="App Icon" class="welcome-icon favicon-constrained">
+            <h1 class="welcome-title">Welcome to Food for the Soul</h1>
+            <p class="welcome-subtitle">Receive His strength for your day.</p>
+            
+            <button id="btn-pray" class="pray-btn">
+                Let us pray! 🕊️
+            </button>
+            
+            <div class="skip-container">
+                <a href="#" id="btn-skip" class="skip-link">Skip to App</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-card">
+        <header class="app-header">
+            <div class="ribbon-wrapper">
+                <div class="ribbon">I ❤️ SAC</div>
+            </div>
+
+            <div class="header-center">
+                <img src="SAC LOGO no background.png" alt="SAC Logo" class="sac-logo">
+                <div class="header-text-block">
+                    <h2>St. Anthony’s College</h2>
+                    <h3>San Jose, Antique</h3>
+                    <h4 class="dept-text">Engineering Department</h4>
+                </div>
+                <img src="engineering logo final.png" alt="Engineering Logo" class="dept-logo">
+            </div>
+
+            <div class="header-controls">
+                <button id="mode-toggle" class="control-btn">
+                    <span class="control-icon">☀️</span>
+                    <span class="control-label">LIGHT MODE</span>
+                </button>
+                <button id="music-toggle" class="control-btn active">
+                    <span class="control-icon">🔊</span>
+                    <span class="control-label">MUSIC ON</span>
+                </button>
+            </div>
+        </header>
+
+       <div class="container main-content-area">
+    <div class="dove-path">
+        <div id="flying-dove" class="flying-dove" title="Click for a whispered quote">🕊️</div>
+    </div>
+
+    <h1 class="hero-title-calibrated">Food for the Soul</h1>
+    
+    <img src="favicon.png" alt="App Icon" class="hero-logo-calibrated">
+    
+    <p class="subtitle">How is your Soul today?</p>
+    
+    <div id="category-container" class="button-grid"></div>
+</div>
+        <nav class="bottom-nav">
+    <a href="#" class="nav-item active" onclick="handleTab(this, 'Daily Word')">
+        <span class="nav-icon">📖</span>
+        <span class="nav-text">Daily</span>
+    </a>
+    <a href="#" class="nav-item" onclick="handleTab(this, 'Prayer Wall')">
+        <span class="nav-icon">🤝</span>
+        <span class="nav-text">Wall</span>
+    </a>
+    <a href="#" class="nav-item" onclick="handleTab(this, 'Journal')">
+        <span class="nav-icon">✍️</span>
+        <span class="nav-text">Journal</span>
+    </a>
+    <a href="#" class="nav-item" onclick="handleTab(this, 'Stories')">
+        <span class="nav-icon">📜</span>
+        <span class="nav-text">Stories</span>
+    </a>
+    <a href="#" class="nav-item" onclick="handleTab(this, 'Quiz')">
+        <span class="nav-icon">💡</span>
+        <span class="nav-text">Quiz</span>
+    </a>
+    <a href="#" class="nav-item" onclick="handleTab(this, 'Prayers')">
+        <span class="nav-icon">🙏</span>
+        <span class="nav-text">Prayers</span>
+    </a>
+</nav>
+<div class="app-footer">
+    <div class="stats-pill">
+        <span class="pill-emoji">🌷</span>
+        <span class="pill-label">BEAUTIFUL SOULS REACHED:</span>
+        <span class="pill-count">2856</span>
+    </div>
+    
+    <div class="credits">
+        <p>Designed with 💓 by: Engr. Lorenzo John Navallasca, ME</p>
+        <p class="dept-sub">SAC - ENGINEERING DEPARTMENT</p>
+    </div>
+</div>
+    </div>
+
+    <div id="quoteModal" class="modal">
+    <div class="modal-content quote-modal-cute">
+        <span id="btn-close-quote" class="close" onclick="document.getElementById('quoteModal').style.display='none'; window.speechSynthesis.cancel();">&times;</span>
+        
+        <div class="quote-header-icon">🕊️</div>
+        
+        <h2 class="quote-title">A Whispered Message</h2>
+        <hr class="cute-hr">
+        
+        <p id="quote-text" class="quote-body"></p>
+        <p id="quote-source" class="quote-author"></p>
+    </div>
+</div>
+
+    <div id="verseModal" class="modal">
+        <div class="modal-content">
+            <h2 id="feeling-text"></h2>
+            <hr>
+            
+            <div id="verse-section">
+                <p id="bible-verse" class="main-text"></p>
+                <button id="btn-show-reflection">Reveal Reflection</button>
+            </div>
+
+            <div id="reflection-section" class="hidden">
+                <p id="reflection-text" class="sub-text"></p>
+                <button id="btn-show-prayer">Reveal Personal Prayer</button>
+            </div>
+
+            <div id="prayer-section" class="hidden">
+                <p id="prayer-text" class="sub-text italic"></p>
+                <button id="btn-close" class="amen-btn">Amen</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script src="script.js"></script>
+
+</body>
+</html>
