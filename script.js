@@ -3,8 +3,8 @@
    ========================================= */
 let bibleData = [];
 let quotesData = []; 
-const introPrayer = new Audio('sounds/Intro Prayer.mp3'); 
-const backgroundMusic = new Audio('sounds/background_music.mp3'); 
+cconst introPrayer = new Audio('intro-prayer.mp3'); 
+const backgroundMusic = new Audio('bg-music.mp3');
 backgroundMusic.loop = true;
 
 /* =========================================
