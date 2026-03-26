@@ -44,12 +44,15 @@ async function loadExcel() {
         if (quoteSheet) {
             quotesData = XLSX.utils.sheet_to_json(quoteSheet);
         }
-        
-        // Finalize UI
-        createCategoryButtons();
-        setupDoveInteraction(); 
-
-    } catch (error) {
+    
+    // Add this to make sure voices are pre-loaded
+    window.speechSynthesis.getVoices(); 
+    
+    // Finalize UI
+    createCategoryButtons();
+    setupDoveInteraction(); 
+}
+    catch (error) {
         console.error("Excel Error:", error);
     }
 }
@@ -189,25 +192,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     listen('btn-pray', async () => {
     recordSoulReached();
-    
-    // 1. Immediately enter the app so the user isn't stuck
     enterApp(); 
 
-    // 2. Start Background Music first
-    backgroundMusic.volume = 0; // Start at 0 to "warm up"
+    // Reset volumes just in case
+    backgroundMusic.volume = 0;
+    introPrayer.currentTime = 0;
+
     try {
         await backgroundMusic.play();
-        // Fade in background music to 0.2
+        // Smooth fade in
         let fadeIn = setInterval(() => {
             if (backgroundMusic.volume < 0.2) {
-                backgroundMusic.volume += 0.05;
+                backgroundMusic.volume += 0.02;
             } else {
                 clearInterval(fadeIn);
             }
-        }, 100);
+        }, 50);
+
+        // Start the prayer shortly after music starts
+        setTimeout(async () => {
+            backgroundMusic.volume = 0.05; // Duck music
+            await introPrayer.play();
+            
+            introPrayer.onended = () => {
+                backgroundMusic.volume = 0.4; // Restore music
+            };
+        }, 1000);
+
     } catch (e) {
-        console.log("BG Music blocked:", e);
+        console.warn("Audio interaction required or file missing:", e);
     }
+});
 
     // 3. Play the Intro Prayer after a short delay
     setTimeout(async () => {
